@@ -9,7 +9,7 @@ pnpm install
 node server.js
 ```
 
-`PORT` sets the port. `PROXY_URL` is passed through to the SNGPL request.
+`PORT` sets the port. `PROXY_URL` is passed through to the PITC module and the SNGPL request.
 
 ## Gas
 
@@ -20,6 +20,16 @@ curl -s -X POST http://localhost:3002/api/v1/gas/sngpl/bills \
 ```
 
 SNGPL is fetched from the official app URL (`client=ANDROID`) and parsed from the HTML text. No captcha is shown. The HTML parser is `suigass_api/sngpl.js`. SSGC is registered and returns `501` until a provider is added.
+
+## Electricity
+
+```bash
+curl -s -X POST http://localhost:3002/api/v1/electricity/fesco/bills \
+  -H 'Content-Type: application/json' \
+  -d '{"account":"20134131900302"}'
+```
+
+Electricity is fetched by `backend/pitc-bill.js`. The nine DISCOs share one provider. The current selectors still target the older table layout, so readings on a new bill can be null while the request succeeds.
 
 ## Fetch the current bill
 
