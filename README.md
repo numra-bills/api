@@ -9,7 +9,17 @@ pnpm install
 node server.js
 ```
 
-`PORT` sets the port. `PROXY_URL` is passed through to provider requests.
+`PORT` sets the port. `PROXY_URL` is passed through to the SNGPL request.
+
+## Gas
+
+```bash
+curl -s -X POST http://localhost:3002/api/v1/gas/sngpl/bills \
+  -H 'Content-Type: application/json' \
+  -d '{"account":"30515063243"}'
+```
+
+SNGPL is fetched from the official app URL (`client=ANDROID`) and parsed from the HTML text. No captcha is shown. The HTML parser is `suigass_api/sngpl.js`. SSGC is registered and returns `501` until a provider is added.
 
 ## Fetch the current bill
 
