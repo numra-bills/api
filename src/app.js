@@ -1,4 +1,5 @@
 const express = require("express");
+const v1 = require("./routes/v1");
 const { sendError } = require("./http/response");
 
 function createApp() {
@@ -30,10 +31,14 @@ function createApp() {
       service: "Utility Bill API",
       version: "1.0.0",
       endpoints: {
+        providers: "GET /api/v1/providers",
+        bills: "POST /api/v1/{utility}/{provider}/bills",
         health: "GET /health",
       },
     });
   });
+
+  app.use("/api/v1", v1);
 
   app.use((req, res) => {
     sendError(res, {
