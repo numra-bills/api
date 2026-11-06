@@ -2,10 +2,12 @@
   "name": "backend-api",
   "version": "1.0.0",
   "description": "Combined electricity and gas bill API. Providers are registered and fetched behind one response shape.",
+  "type": "module",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js"
+    "start": "tsx server.js",
+    "dev": "tsx server.js",
+    "typecheck": "tsc --noEmit"
   },
   "license": "ISC",
   "dependencies": {
@@ -13,5 +15,9 @@
     "cheerio": "^1.1.2",
     "express": "^5.1.0",
     "https-proxy-agent": "^7.0.5"
+  },
+  "devDependencies": {
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
   }
 }

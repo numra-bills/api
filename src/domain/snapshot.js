@@ -114,7 +114,7 @@ function documentFrom(html, baseUrl) {
   };
 }
 
-module.exports = {
+export {
   todayInPakistan,
   parseAmount,
   dueDateIso,

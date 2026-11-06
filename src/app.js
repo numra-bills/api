@@ -1,6 +1,6 @@
-const express = require("express");
-const v1 = require("./routes/v1");
-const { sendError } = require("./http/response");
+import express from "express";
+import v1 from "./routes/v1.js";
+import { sendError } from "./http/response.js";
 
 function createApp() {
   const app = express();
@@ -56,6 +56,4 @@ function createApp() {
   return app;
 }
 
-module.exports = {
-  createApp,
-};
+export { createApp };

@@ -22,7 +22,7 @@ function upstream(code, message) {
   return new HttpError(502, code, message);
 }
 
-module.exports = {
+export {
   HttpError,
   badRequest,
   notFound,

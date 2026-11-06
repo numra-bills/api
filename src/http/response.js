@@ -19,7 +19,4 @@ function sendError(res, error) {
   return res.status(status).json(body);
 }
 
-module.exports = {
-  sendSuccess,
-  sendError,
-};
+export { sendSuccess, sendError };

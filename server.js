@@ -1,9 +1,12 @@
-const { createApp } = require("./src/app");
+import { pathToFileURL } from "node:url";
+import { createApp } from "./src/app.js";
 
 const app = createApp();
 const PORT = process.env.PORT || 3002;
 
-if (require.main === module) {
+const isMain = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+
+if (isMain) {
   app.listen(PORT, () => {
     console.log(`Utility bill API running on port ${PORT}`);
     console.log(`Providers: http://localhost:${PORT}/api/v1/providers`);
@@ -12,4 +15,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = app;
+export default app;

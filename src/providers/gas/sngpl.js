@@ -1,8 +1,8 @@
-const axios = require("axios");
-const { HttpsProxyAgent } = require("https-proxy-agent");
-const { parseBillHtml } = require("../../../../suigass_api/sngpl");
-const { badRequest, upstream } = require("../../http/errors");
-const { buildSnapshot, documentFrom, parseAmount } = require("../../domain/snapshot");
+import axios from "axios";
+import { HttpsProxyAgent } from "https-proxy-agent";
+import { parseBillHtml } from "./parseSngplHtml.js";
+import { upstream } from "../../http/errors.js";
+import { buildSnapshot, documentFrom, parseAmount } from "../../domain/snapshot.js";
 
 const BILL_URL = "https://www.sngpl.com.pk/viewbill";
 const BASE_URL = "https://www.sngpl.com.pk/";
@@ -71,19 +71,7 @@ function amountMap(charges) {
   return mapped;
 }
 
-module.exports = {
-  utility: "gas",
-  code: "sngpl",
-  name: "Sui Northern Gas Pipelines Limited",
-  implemented: true,
-  validateAccount(account) {
-    const value = String(account || "").trim();
-    if (!/^\d{10,11}$/.test(value)) {
-      throw badRequest("invalid_account", "Account must be 10 or 11 digits");
-    }
-    return value;
-  },
-  async fetchBill(account, { includeDocument = false } = {}) {
+async function fetchBill(provider, account, { includeDocument = false } = {}) {
     let response;
     try {
       const params = new URLSearchParams({
@@ -108,9 +96,9 @@ module.exports = {
 
     return buildSnapshot({
       utility: "gas",
-      provider: this,
+      provider,
       account,
-      source: "sngpl",
+      source: provider.code,
       document: includeDocument ? documentFrom(html, BASE_URL) : null,
       fields: {
         billingMonth: parsed.billingMonth,
@@ -147,5 +135,6 @@ module.exports = {
         },
       },
     });
-  },
-};
+}
+
+export { fetchBill };

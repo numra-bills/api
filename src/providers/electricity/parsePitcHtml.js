@@ -1,5 +1,5 @@
-const cheerio = require("cheerio");
-const { parseAmount } = require("../../domain/snapshot");
+import * as cheerio from "cheerio";
+import { parseAmount } from "../../domain/snapshot.js";
 
 const BASE_URL = "https://bill.pitc.com.pk/";
 
@@ -175,8 +175,4 @@ function parsePitcHtml(html) {
   };
 }
 
-module.exports = {
-  BASE_URL,
-  prepareDocument,
-  parsePitcHtml,
-};
+export { BASE_URL, prepareDocument, parsePitcHtml };

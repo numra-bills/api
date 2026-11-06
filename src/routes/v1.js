@@ -1,10 +1,10 @@
-const express = require("express");
-const { listProviders } = require("../controllers/providersController");
-const { createBill } = require("../controllers/billsController");
+import express from "express";
+import { listProviders } from "../controllers/providersController.js";
+import { createBill } from "../controllers/billsController.js";
 
 const router = express.Router();
 
 router.get("/providers", listProviders);
 router.post("/:utility/:provider/bills", createBill);
 
-module.exports = router;
+export default router;
