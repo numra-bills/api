@@ -23,12 +23,13 @@ Do not start or restart the server unless asked.
 
 ## API
 
-Two routes, in `src/routes/v1.js`:
+Three routes, in `src/routes/v1.js`:
 
 - `GET /api/v1/providers`
+- `GET /api/v1/me` requires `Authorization: Bearer <Firebase ID token>`. Firebase Admin verifies it and the response data is `{ uid }`. Missing admin credentials are `503` `auth_unavailable`. A missing or bad token is `401` `unauthorized`. The provider and bill routes stay public.
 - `POST /api/v1/:utility/:provider/bills` with `{ "account", "includeDocument" }`
 
-`account` is the only account field. Company codes are lowercase. `POST` fetches the current bill and does not save it. There is no database.
+`account` is the only account field. Company codes are lowercase. `POST` fetches the current bill and does not save it. There is no database. `GOOGLE_APPLICATION_CREDENTIALS` points at the Firebase service-account JSON. Do not commit that file.
 
 Unknown utility or provider is `404` `provider_not_found`. A known provider with `implemented: false` is `501` `not_implemented` after the account check. A short or non-digit account is `400` and does not call upstream.
 
@@ -80,4 +81,4 @@ Shared `data` keys: `utility`, `provider` (`code`, `name`), `account`, `billingM
 | Account check or fetch call | `src/controllers/billsController.js` |
 | Public provider list | `src/controllers/providersController.js` |
 
-Leave the route shape alone. Do not add a provider, a route, or a bills-api feature unless asked.
+Do not add a provider or a bills-api feature unless asked. `GET /api/v1/me` is the only authenticated route.

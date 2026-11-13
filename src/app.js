@@ -11,7 +11,7 @@ function createApp() {
     res.header("Access-Control-Allow-Origin", "*");
     res.header(
       "Access-Control-Allow-Headers",
-      "Origin, X-Requested-With, Content-Type, Accept"
+      "Origin, X-Requested-With, Content-Type, Accept, Authorization"
     );
     res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
     if (req.method === "OPTIONS") return res.sendStatus(204);
@@ -33,6 +33,7 @@ function createApp() {
       endpoints: {
         providers: "GET /api/v1/providers",
         bills: "POST /api/v1/{utility}/{provider}/bills",
+        me: "GET /api/v1/me",
         health: "GET /health",
       },
     });
