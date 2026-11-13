@@ -23,13 +23,14 @@ Do not start or restart the server unless asked.
 
 ## API
 
-Three routes, in `src/routes/v1.js`:
+Routes, in `src/routes/v1.js`:
 
 - `GET /api/v1/providers`
 - `GET /api/v1/me` requires `Authorization: Bearer <Firebase ID token>`. Firebase Admin verifies it and the response data is `{ uid }`. Missing admin credentials are `503` `auth_unavailable`. A missing or bad token is `401` `unauthorized`. The provider and bill routes stay public.
+- `GET /api/v1/accounts`, `POST /api/v1/accounts`, `PATCH /api/v1/accounts/:id`, and `DELETE /api/v1/accounts/:id` require the same bearer token. These are the signed-in user's saved bills in localhost Postgres (`saved_accounts`). The uid comes from the token. The unique key is `(uid, provider, reference_no)`. `POST` body is `{ provider, referenceNo, category, tag }`. A repeat of that key is `409` `duplicate_account`. A missing `DATABASE_URL` is `503` `database_unavailable`.
 - `POST /api/v1/:utility/:provider/bills` with `{ "account", "includeDocument" }`
 
-`account` is the only account field. Company codes are lowercase. `POST` fetches the current bill and does not save it. There is no database. `GOOGLE_APPLICATION_CREDENTIALS` points at the Firebase service-account JSON. Do not commit that file.
+`account` is the only account field on the bill fetch. Company codes are lowercase. `POST /bills` fetches the current bill and does not save it. `GOOGLE_APPLICATION_CREDENTIALS` points at the Firebase service-account JSON. Do not commit that file or `backend/.env`. `DATABASE_URL` lives in `backend/.env`. Local database name is `pitc_bills`.
 
 Unknown utility or provider is `404` `provider_not_found`. A known provider with `implemented: false` is `501` `not_implemented` after the account check. A short or non-digit account is `400` and does not call upstream.
 

@@ -13,7 +13,7 @@ function createApp() {
       "Access-Control-Allow-Headers",
       "Origin, X-Requested-With, Content-Type, Accept, Authorization"
     );
-    res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    res.header("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS");
     if (req.method === "OPTIONS") return res.sendStatus(204);
     next();
   });
@@ -34,6 +34,7 @@ function createApp() {
         providers: "GET /api/v1/providers",
         bills: "POST /api/v1/{utility}/{provider}/bills",
         me: "GET /api/v1/me",
+        accounts: "GET /api/v1/accounts",
         health: "GET /health",
       },
     });
