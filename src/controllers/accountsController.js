@@ -4,6 +4,8 @@ import { sendSuccess } from "../http/response.js";
 import { billStatus } from "../domain/snapshot.js";
 import { deleteAccount, insertAccount, listAccounts, updateAccount } from "../accounts/store.js";
 import { ensureBill } from "../bills/ensure.js";
+import { latestReadings } from "../readings/store.js";
+import { asNumber } from "./readingsController.js";
 
 const categories = new Set(["Home", "Office", "Shop", "Other"]);
 
@@ -49,15 +51,24 @@ function presentBill(row) {
     payableAfterDueDate: money(row.payable_after_due_date),
     status: billStatus(payableWithinDueDate, row.due_date),
     currency: row.currency,
+    meterReading: asNumber(row.last_reading),
   };
 }
 
-async function withBill(account) {
+async function withBill(account, reading) {
   const { row } = await ensureBill(account.provider, account.reference_no);
-  return present(account, row);
+  return present(account, row, reading);
 }
 
-function present(row, bill) {
+function presentReading(row) {
+  if (!row) return null;
+  return {
+    value: Number(row.reading),
+    enteredAt: new Date(row.entered_at).toISOString(),
+  };
+}
+
+function present(row, bill, reading) {
   const provider = providers.find((item) => item.code === row.provider);
   return {
     id: String(row.id),
@@ -68,14 +79,16 @@ function present(row, bill) {
     referenceNo: row.reference_no,
     tag: row.tag,
     bill: presentBill(bill),
+    reading: presentReading(reading),
   };
 }
 
 async function getAccounts(req, res, next) {
   try {
     const rows = await listAccounts(req.uid);
+    const readings = new Map((await latestReadings(req.uid)).map((row) => [String(row.account_id), row]));
     const data = [];
-    for (const row of rows) data.push(await withBill(row));
+    for (const row of rows) data.push(await withBill(row, readings.get(String(row.id))));
     sendSuccess(res, data);
   } catch (error) {
     next(error);
