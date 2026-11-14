@@ -27,7 +27,8 @@ Routes, in `src/routes/v1.js`:
 
 - `GET /api/v1/providers`
 - `GET /api/v1/me` requires `Authorization: Bearer <Firebase ID token>`. Firebase Admin verifies it and the response data is `{ uid }`. Set `GOOGLE_CLOUD_PROJECT` or `GOOGLE_APPLICATION_CREDENTIALS`. If neither is set the response is `503` `auth_unavailable`. A missing or bad token is `401` `unauthorized`. The provider and bill routes stay public.
-- `GET /api/v1/accounts`, `POST /api/v1/accounts`, `PATCH /api/v1/accounts/:id`, and `DELETE /api/v1/accounts/:id` require the same bearer token. These are the signed-in user's saved bills in localhost Postgres (`saved_accounts`). The uid comes from the token. The unique key is `(uid, provider, reference_no)`. `POST` body is `{ provider, referenceNo, category, tag }`. A repeat of that key is `409` `duplicate_account`. A missing `DATABASE_URL` is `503` `database_unavailable`.
+- `GET /api/v1/accounts`, `POST /api/v1/accounts`, `PATCH /api/v1/accounts/:id`, and `DELETE /api/v1/accounts/:id` require the same bearer token. These are the signed-in user's saved bills in localhost Postgres (`saved_accounts`). The uid comes from the token. The unique key is `(uid, provider, reference_no)`. `POST` body is `{ provider, referenceNo, category, tag }`. A repeat of that key is `409` `duplicate_account`. A missing `DATABASE_URL` is `503` `database_unavailable`. Each account includes `bill`, the latest shared snapshot for that provider and reference.
+- `bills` stores one shared row per `(provider, reference_no, billing_month)`. `GET`, `POST`, and `PATCH` on accounts call the provider only when that reference has no fresh snapshot. Fresh means `checked_at` within 12 hours. The same month updates the existing row. A new billing month inserts another row. A provider failure leaves the saved account in the response with `bill: null`, or with the older row when one exists. `POST /bills` does not write this table.
 - `POST /api/v1/:utility/:provider/bills` with `{ "account", "includeDocument" }`
 
 `account` is the only account field on the bill fetch. Company codes are lowercase. `POST /bills` fetches the current bill and does not save it. `GOOGLE_APPLICATION_CREDENTIALS` points at the Firebase service-account JSON. Do not commit that file or `backend/.env`. `DATABASE_URL` lives in `backend/.env`. Local database name is `pitc_bills`.
@@ -82,4 +83,4 @@ Shared `data` keys: `utility`, `provider` (`code`, `name`), `account`, `billingM
 | Account check or fetch call | `src/controllers/billsController.js` |
 | Public provider list | `src/controllers/providersController.js` |
 
-Do not add a provider or a bills-api feature unless asked. `GET /api/v1/me` is the only authenticated route.
+Do not add a provider unless asked. Authenticated routes are `GET /api/v1/me` and the `/api/v1/accounts` routes.

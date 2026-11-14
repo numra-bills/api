@@ -1,7 +1,9 @@
 import { providers } from "../providers/index.ts";
 import { badRequest, notFound } from "../http/errors.js";
 import { sendSuccess } from "../http/response.js";
+import { billStatus } from "../domain/snapshot.js";
 import { deleteAccount, insertAccount, listAccounts, updateAccount } from "../accounts/store.js";
+import { ensureBill } from "../bills/ensure.js";
 
 const categories = new Set(["Home", "Office", "Shop", "Other"]);
 
@@ -30,7 +32,32 @@ function readAccount(body) {
   };
 }
 
-function present(row) {
+function money(value) {
+  if (value == null || value === "") return null;
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+}
+
+function presentBill(row) {
+  if (!row) return null;
+  const payableWithinDueDate = money(row.payable_within_due_date);
+  return {
+    billingMonth: row.billing_month,
+    issueDate: row.issue_date,
+    dueDate: row.due_date,
+    payableWithinDueDate,
+    payableAfterDueDate: money(row.payable_after_due_date),
+    status: billStatus(payableWithinDueDate, row.due_date),
+    currency: row.currency,
+  };
+}
+
+async function withBill(account) {
+  const { row } = await ensureBill(account.provider, account.reference_no);
+  return present(account, row);
+}
+
+function present(row, bill) {
   const provider = providers.find((item) => item.code === row.provider);
   return {
     id: String(row.id),
@@ -40,13 +67,16 @@ function present(row) {
     category: row.category,
     referenceNo: row.reference_no,
     tag: row.tag,
+    bill: presentBill(bill),
   };
 }
 
 async function getAccounts(req, res, next) {
   try {
     const rows = await listAccounts(req.uid);
-    sendSuccess(res, rows.map(present));
+    const data = [];
+    for (const row of rows) data.push(await withBill(row));
+    sendSuccess(res, data);
   } catch (error) {
     next(error);
   }
@@ -55,7 +85,7 @@ async function getAccounts(req, res, next) {
 async function postAccount(req, res, next) {
   try {
     const row = await insertAccount(req.uid, readAccount(req.body || {}));
-    sendSuccess(res, present(row));
+    sendSuccess(res, await withBill(row));
   } catch (error) {
     next(error);
   }
@@ -67,7 +97,7 @@ async function patchAccount(req, res, next) {
     if (!Number.isInteger(id) || id < 1) throw notFound("account_not_found", "Saved bill not found.");
     const row = await updateAccount(req.uid, id, readAccount(req.body || {}));
     if (!row) throw notFound("account_not_found", "Saved bill not found.");
-    sendSuccess(res, present(row));
+    sendSuccess(res, await withBill(row));
   } catch (error) {
     next(error);
   }
