@@ -28,6 +28,8 @@ async function requireUser(req, res, next) {
     if (!match) throw new HttpError(401, "unauthorized", "Sign in required.");
     const decoded = await adminAuth().verifyIdToken(match[1]);
     req.uid = decoded.uid;
+    req.email = decoded.email || null;
+    req.displayName = decoded.name || null;
     next();
   } catch (error) {
     if (error instanceof HttpError) {
