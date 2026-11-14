@@ -4,14 +4,20 @@ import { getAuth } from "firebase-admin/auth";
 import { HttpError } from "./errors.js";
 
 function adminAuth() {
-  if (!process.env.GOOGLE_APPLICATION_CREDENTIALS) {
-    throw new HttpError(503, "auth_unavailable", "Firebase Admin credentials are not configured.");
-  }
   try {
-    if (getApps().length === 0) initializeApp({ credential: applicationDefault() });
+    if (getApps().length === 0) {
+      if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+        initializeApp({ credential: applicationDefault() });
+      } else if (process.env.GOOGLE_CLOUD_PROJECT) {
+        initializeApp({ projectId: process.env.GOOGLE_CLOUD_PROJECT });
+      } else {
+        throw new HttpError(503, "auth_unavailable", "Firebase project is not configured.");
+      }
+    }
     return getAuth();
-  } catch {
-    throw new HttpError(503, "auth_unavailable", "Firebase Admin credentials are not configured.");
+  } catch (error) {
+    if (error instanceof HttpError) throw error;
+    throw new HttpError(503, "auth_unavailable", "Firebase project is not configured.");
   }
 }
 

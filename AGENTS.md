@@ -26,7 +26,7 @@ Do not start or restart the server unless asked.
 Routes, in `src/routes/v1.js`:
 
 - `GET /api/v1/providers`
-- `GET /api/v1/me` requires `Authorization: Bearer <Firebase ID token>`. Firebase Admin verifies it and the response data is `{ uid }`. Missing admin credentials are `503` `auth_unavailable`. A missing or bad token is `401` `unauthorized`. The provider and bill routes stay public.
+- `GET /api/v1/me` requires `Authorization: Bearer <Firebase ID token>`. Firebase Admin verifies it and the response data is `{ uid }`. Set `GOOGLE_CLOUD_PROJECT` or `GOOGLE_APPLICATION_CREDENTIALS`. If neither is set the response is `503` `auth_unavailable`. A missing or bad token is `401` `unauthorized`. The provider and bill routes stay public.
 - `GET /api/v1/accounts`, `POST /api/v1/accounts`, `PATCH /api/v1/accounts/:id`, and `DELETE /api/v1/accounts/:id` require the same bearer token. These are the signed-in user's saved bills in localhost Postgres (`saved_accounts`). The uid comes from the token. The unique key is `(uid, provider, reference_no)`. `POST` body is `{ provider, referenceNo, category, tag }`. A repeat of that key is `409` `duplicate_account`. A missing `DATABASE_URL` is `503` `database_unavailable`.
 - `POST /api/v1/:utility/:provider/bills` with `{ "account", "includeDocument" }`
 
