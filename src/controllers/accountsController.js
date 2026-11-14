@@ -52,6 +52,9 @@ function presentBill(row) {
     status: billStatus(payableWithinDueDate, row.due_date),
     currency: row.currency,
     meterReading: asNumber(row.last_reading),
+    units: money(row.units),
+    charges: row.charges && typeof row.charges === "object" ? row.charges : {},
+    history: Array.isArray(row.history) ? row.history : [],
   };
 }
 
