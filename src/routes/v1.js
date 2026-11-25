@@ -1,5 +1,6 @@
 import express from "express";
 import { getAccounts, patchAccount, postAccount, removeAccount } from "../controllers/accountsController.js";
+import { getAccountDocument } from "../controllers/documentsController.js";
 import { postReading } from "../controllers/readingsController.js";
 import { getMe, patchMe } from "../controllers/usersController.js";
 import { getRequests, postRequest } from "../controllers/requestsController.js";
@@ -15,6 +16,7 @@ router.post("/provider-requests", requireUser, postRequest);
 router.get("/me", requireUser, getMe);
 router.patch("/me", requireUser, patchMe);
 router.get("/accounts", requireUser, getAccounts);
+router.get("/accounts/:id/document", requireUser, getAccountDocument);
 router.post("/accounts", requireUser, postAccount);
 router.patch("/accounts/:id", requireUser, patchAccount);
 router.post("/accounts/:id/readings", requireUser, postReading);

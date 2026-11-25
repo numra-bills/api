@@ -74,4 +74,20 @@ async function upsertBill(input) {
   return result.rows[0];
 }
 
-export { latestBill, upsertBill };
+async function readDocument(provider, referenceNo) {
+  const result = await getPool().query(
+    `select id, document
+     from bills
+     where provider = $1 and reference_no = $2
+     order by checked_at desc, id desc
+     limit 1`,
+    [provider, referenceNo],
+  );
+  return result.rows[0] || null;
+}
+
+async function saveDocument(id, document) {
+  await getPool().query("update bills set document = $2::jsonb where id = $1", [id, JSON.stringify(document)]);
+}
+
+export { latestBill, upsertBill, readDocument, saveDocument };

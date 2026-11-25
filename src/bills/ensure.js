@@ -1,5 +1,5 @@
 import { providers } from "../providers/index.ts";
-import { latestBill, upsertBill } from "./store.js";
+import { latestBill, saveDocument, upsertBill } from "./store.js";
 
 const freshForMs = 12 * 60 * 60 * 1000;
 const pending = new Map();
@@ -9,12 +9,11 @@ function isFresh(row) {
   return Date.now() - new Date(row.checked_at).getTime() < freshForMs;
 }
 
-async function fetchAndStore(provider, referenceNo) {
-  const snapshot = await provider.fetch(provider, referenceNo, { includeDocument: false });
-  const data = snapshot.data;
+async function storeSnapshot(provider, referenceNo, snapshot) {
+  const data = snapshot.data || {};
   const billingMonth = data.billingMonth && String(data.billingMonth).trim();
   if (!billingMonth) return latestBill(provider.code, referenceNo);
-  return upsertBill({
+  const row = await upsertBill({
     provider: provider.code,
     referenceNo,
     billingMonth,
@@ -34,6 +33,13 @@ async function fetchAndStore(provider, referenceNo) {
     details: data.details,
     source: snapshot.meta && snapshot.meta.source,
   });
+  if (data.document && data.document.content) await saveDocument(row.id, data.document);
+  return row;
+}
+
+async function fetchAndStore(provider, referenceNo) {
+  const snapshot = await provider.fetch(provider, referenceNo, { includeDocument: false });
+  return storeSnapshot(provider, referenceNo, snapshot);
 }
 
 async function loadBill(providerCode, referenceNo) {
@@ -60,4 +66,4 @@ function ensureBill(providerCode, referenceNo) {
   return job;
 }
 
-export { ensureBill, freshForMs };
+export { ensureBill, freshForMs, storeSnapshot };
