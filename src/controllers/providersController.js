@@ -7,7 +7,9 @@ function listProviders(req, res) {
       utility: provider.utility,
       code: provider.code,
       name: provider.name,
+      label: provider.label,
       implemented: provider.implemented,
+      account: provider.account,
     })),
   });
 }

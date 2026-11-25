@@ -9,7 +9,7 @@ function savedOrThrow(error) {
   throw error;
 }
 
-const columns = "id, uid, provider, reference_no, category, tag, created_at";
+const columns = "id, uid, provider, reference_no, fields, category, tag, created_at";
 
 async function listAccounts(uid) {
   const result = await getPool().query(
@@ -22,10 +22,10 @@ async function listAccounts(uid) {
 async function insertAccount(uid, input) {
   try {
     const result = await getPool().query(
-      `insert into saved_accounts (uid, provider, reference_no, category, tag)
-       values ($1, $2, $3, $4, $5)
+      `insert into saved_accounts (uid, provider, reference_no, category, tag, fields)
+       values ($1, $2, $3, $4, $5, $6::jsonb)
        returning ${columns}`,
-      [uid, input.provider, input.referenceNo, input.category, input.tag],
+      [uid, input.provider, input.referenceNo, input.category, input.tag, JSON.stringify(input.fields || [])],
     );
     return result.rows[0];
   } catch (error) {
@@ -37,10 +37,10 @@ async function updateAccount(uid, id, input) {
   try {
     const result = await getPool().query(
       `update saved_accounts
-       set provider = $3, reference_no = $4, category = $5, tag = $6
+       set provider = $3, reference_no = $4, category = $5, tag = $6, fields = $7::jsonb
        where id = $1 and uid = $2
        returning ${columns}`,
-      [id, uid, input.provider, input.referenceNo, input.category, input.tag],
+      [id, uid, input.provider, input.referenceNo, input.category, input.tag, JSON.stringify(input.fields || [])],
     );
     return result.rows[0] || null;
   } catch (error) {
@@ -56,4 +56,12 @@ async function deleteAccount(uid, id) {
   return result.rowCount > 0;
 }
 
-export { listAccounts, insertAccount, updateAccount, deleteAccount };
+async function findAccount(uid, id) {
+  const result = await getPool().query(
+    `select ${columns} from saved_accounts where id = $1 and uid = $2`,
+    [id, uid],
+  );
+  return result.rows[0] || null;
+}
+
+export { listAccounts, insertAccount, updateAccount, deleteAccount, findAccount };

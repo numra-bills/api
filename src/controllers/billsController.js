@@ -1,21 +1,7 @@
 import { providers } from "../providers/index.ts";
 import { badRequest, notFound, notImplemented } from "../http/errors.js";
 import { sendSuccess } from "../http/response.js";
-
-function accountMessage(min, max) {
-  if (min === max) return `Account must be ${min} digits`;
-  if (max === min + 1) return `Account must be ${min} or ${max} digits`;
-  return `Account must be ${min} to ${max} digits`;
-}
-
-function checkAccount(provider, account) {
-  const value = String(account || "").trim();
-  const { min, max } = provider.account;
-  if (!new RegExp(`^\\d{${min},${max}}$`).test(value)) {
-    throw badRequest("invalid_account", accountMessage(min, max));
-  }
-  return value;
-}
+import { checkOne } from "../providers/fields.js";
 
 async function createBill(req, res, next) {
   try {
@@ -36,7 +22,7 @@ async function createBill(req, res, next) {
       throw badRequest("account_required", "account is required");
     }
 
-    const account = checkAccount(provider, body.account);
+    const account = checkOne(provider, body.account);
     if (provider.implemented === false) {
       throw notImplemented(`${provider.name} is not available yet`);
     }

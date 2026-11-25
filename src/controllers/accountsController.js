@@ -6,29 +6,22 @@ import { deleteAccount, insertAccount, listAccounts, updateAccount } from "../ac
 import { ensureBill } from "../bills/ensure.js";
 import { latestReadings } from "../readings/store.js";
 import { asNumber } from "./readingsController.js";
+import { readFields } from "../providers/fields.js";
 
 const categories = new Set(["Home", "Office", "Shop", "Other"]);
-
-function digits(value) {
-  return String(value || "").replace(/\D/g, "");
-}
 
 function readAccount(body) {
   const code = String(body.provider || "").trim().toLowerCase();
   const provider = providers.find((item) => item.code === code);
   if (!provider) throw badRequest("invalid_provider", "Choose a provider.");
-  const referenceNo = digits(body.referenceNo);
-  if (!referenceNo) throw badRequest("reference_required", "Enter a reference number.");
-  const { min, max } = provider.account;
-  if (referenceNo.length < min || referenceNo.length > max) {
-    throw badRequest("invalid_account", `Reference must be ${min} to ${max} digits.`);
-  }
+  const { referenceNo, fields } = readFields(provider, body);
   const category = String(body.category || "");
   if (!categories.has(category)) throw badRequest("invalid_category", "Choose a category.");
   const tag = String(body.tag || "").trim().slice(0, 16);
   return {
     provider: provider.code,
     referenceNo,
+    fields,
     category,
     tag: tag || null,
   };
@@ -52,6 +45,7 @@ function presentBill(row) {
     status: billStatus(payableWithinDueDate, row.due_date),
     currency: row.currency,
     meterReading: asNumber(row.last_reading),
+    previousReading: asNumber(row.previous_reading),
     units: money(row.units),
     charges: row.charges && typeof row.charges === "object" ? row.charges : {},
     history: Array.isArray(row.history) ? row.history : [],
@@ -71,15 +65,20 @@ function presentReading(row) {
   };
 }
 
+function presentFields(value) {
+  return Array.isArray(value) ? value : [];
+}
+
 function present(row, bill, reading) {
   const provider = providers.find((item) => item.code === row.provider);
   return {
     id: String(row.id),
     providerId: row.provider,
-    providerName: provider ? provider.name : row.provider,
+    providerName: provider ? provider.label : row.provider,
     kind: provider ? provider.utility : null,
     category: row.category,
     referenceNo: row.reference_no,
+    fields: presentFields(row.fields),
     tag: row.tag,
     bill: presentBill(bill),
     reading: presentReading(reading),
