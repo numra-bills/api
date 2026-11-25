@@ -5,8 +5,10 @@ import { HttpError } from "../http/errors.js";
 
 const { Pool } = pg;
 
+/** @type {import("pg").Pool | undefined} */
 let pool;
 
+/** @returns {import("pg").Pool} */
 function getPool() {
   loadEnv();
   if (!process.env.DATABASE_URL) {
