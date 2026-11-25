@@ -33,14 +33,18 @@ async function postRequest(req, res, next) {
   try {
     const body = req.body || {};
     const providerName = text(body.providerName, 80);
+    const letters = providerName.match(/\p{L}/gu);
     if (!providerName) throw badRequest("name_required", "Enter the provider name.");
+    if (!letters || letters.length < 2) throw badRequest("name_invalid", "Enter the provider's real name.");
     const utility = String(body.utility || "").trim();
     if (!utilities.has(utility)) throw badRequest("invalid_utility", "Choose a bill type.");
+    const notes = text(body.notes, 500);
+    if (!notes) throw badRequest("notes_required", "Enter a note about this provider.");
     const row = await insertRequest(req.uid, {
       providerName,
       utility,
       city: text(body.city, 80) || null,
-      notes: text(body.notes, 500) || null,
+      notes,
     });
     sendSuccess(res, present(row));
   } catch (error) {
