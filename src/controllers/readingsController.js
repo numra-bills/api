@@ -35,8 +35,11 @@ async function postReading(req, res, next) {
 
     const previousRow = await latestReading(req.uid, id);
     const bill = await latestBill(account.provider, account.reference_no);
-    const previous = previousRow ? Number(previousRow.reading) : asNumber(bill && bill.last_reading);
-    if (previous != null && reading < previous) {
+    const userLast = previousRow ? Number(previousRow.reading) : null;
+    const monthPrevious = asNumber(bill && bill.previous_reading);
+    const current = asNumber(bill && bill.last_reading);
+    const floor = userLast != null && monthPrevious != null ? Math.max(userLast, monthPrevious) : userLast ?? monthPrevious ?? current;
+    if (floor != null && reading < floor) {
       throw badRequest("reading_too_low", "The reading is lower than the previous one.");
     }
 
